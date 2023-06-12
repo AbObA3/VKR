@@ -1,6 +1,5 @@
 package tables;
 
-
 import annotations.ForeignKey;
 import annotations.PrimaryKey;
 import annotations.Table;
@@ -13,21 +12,16 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-@Table(tableName = "example",schemaName = "schema_5")
-public class Example {
+@Table(tableName = "table14")
+public class Table14 {
 
     @PrimaryKey
-    private Integer id;
+    Integer id;
 
-    private Long longValue;
+    String description;
 
-    private String stringValue;
-
-    private Float realValue;
+    String status;
 
     @ForeignKey
-    private Example2 example2Id;
-
-
-
+    Table15 table15Id;
 }

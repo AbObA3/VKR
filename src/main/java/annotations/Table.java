@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Table {
 
-    String schemaName() default "public";
+    String schemaName() default "schema_4";
 
     String  tableName() default "";
 }

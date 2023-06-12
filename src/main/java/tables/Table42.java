@@ -1,6 +1,7 @@
 package tables;
 
 
+import annotations.ForeignKey;
 import annotations.PrimaryKey;
 import annotations.Table;
 import lombok.AllArgsConstructor;
@@ -8,24 +9,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
-@Table(tableName = "example2",schemaName = "schema_5")
-public class Example2 {
+@Table(tableName = "table42")
+public class Table42 {
 
     @PrimaryKey
-    private Integer id;
+    Integer id;
 
-    private Double doubleValue;
+    Timestamp startTime;
 
-    private Date dateValue;
+    Timestamp endTime;
 
-    private Timestamp timestampValue;
+    @ForeignKey
+    Table45 table45Id;
 
-    private Boolean boolValue;
 }

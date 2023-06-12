@@ -34,7 +34,6 @@ public class ValidatorImpl implements Validator {
 
     @Override
     public void validate(Map<String, File> xsdMap, Integer quantityTables) {
-        Definer definer = new Definer();
         Map<String,File> xmlMap = new HashMap<>();
         SchemaFactory factory =
                 SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -48,32 +47,33 @@ public class ValidatorImpl implements Validator {
             for (Class<?> aClass : annotated) {
                 var object = aClass.getConstructor().newInstance();
                 var className = aClass.getSimpleName();
-                var tableName = definer.getTableName(object);
+                var tableName = Definer.getTableName(object);
                 if (!className.equalsIgnoreCase(tableName.replace("_", ""))) {
                     throw new NotMatchedNamesException(String.format("Имя класса %s не совпадает с именем таблицы в бд %s", className, tableName));
                 }
                 for (var field : aClass.getDeclaredFields()) {
                     Row row = new Row();
                     Field foreignField = null;
-                    if (definer.isPrimaryKey(field)) {
+                    if (Definer.isPrimaryKey(field)) {
                         row.setConstraintType("p");
-                    } else if (definer.isForeignKey(field)) {
+                    } else if (Definer.isForeignKey(field)) {
                         row.setConstraintType("f");
-                        foreignField = definer.getPrimaryKey(field.getType().getConstructor().newInstance());
+                        foreignField = Definer.getPrimaryKey(field.getType().getConstructor().newInstance());
                         if (Objects.isNull(foreignField)) {
                             throw new NotFoundPrimaryKeyException(String.format("В таблице %s присутствует вторичный ключ %s, но в таблице %s отстутствует первичный ключ"
                                     , aClass.getSimpleName(), field.getName(), field.getType().getSimpleName()));
                         }
-                        row.setReferenceTable(fromCamelToSnake(field.getType().getSimpleName()));
-                        row.setReferenceCol(fromCamelToSnake(foreignField.getName()));
+                        row.setReferenceTable(Validator.fromCamelToSnake(field.getType().getSimpleName()));
+                        row.setReferenceCol(Validator.fromCamelToSnake(foreignField.getName()));
                         row.setDataType(TypesEnum.valueOf(foreignField.getType().getSimpleName().toUpperCase()).getPostgresType());
                         row.setNumericPrecision(TypesEnum.valueOf(foreignField.getType().getSimpleName().toUpperCase()).getNumericPrecision());
                     } else {
                         row.setConstraintType("c");
+
                     }
-                    row.setTableSchema(definer.getSchemaName(object));
-                    row.setTableName(fromCamelToSnake(aClass.getSimpleName()));
-                    row.setColumnName(fromCamelToSnake(field.getName()));
+                    row.setTableSchema(Definer.getSchemaName(object));
+                    row.setTableName(Validator.fromCamelToSnake(aClass.getSimpleName()));
+                    row.setColumnName(Validator.fromCamelToSnake(field.getName()));
                     if (Objects.isNull(foreignField)) {
                         row.setDataType(TypesEnum.valueOf(field.getType().getSimpleName().toUpperCase()).getPostgresType());
                         row.setNumericPrecision(TypesEnum.valueOf(field.getType().getSimpleName().toUpperCase()).getNumericPrecision());
@@ -101,23 +101,4 @@ public class ValidatorImpl implements Validator {
         xmlMap.forEach((s, file) -> file.deleteOnExit());
     }
 
-    private String fromCamelToSnake(String camelCase) {
-
-        StringBuilder result = new StringBuilder();
-
-        char c = camelCase.charAt(0);
-        result.append(Character.toLowerCase(c));
-
-        for (int i = 1; i < camelCase.length(); i++) {
-
-            char ch = camelCase.charAt(i);
-            if (Character.isUpperCase(ch)) {
-                result.append('_');
-                result.append(Character.toLowerCase(ch));
-            } else {
-                result.append(ch);
-            }
-        }
-        return result.toString();
-    }
 }

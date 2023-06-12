@@ -22,7 +22,8 @@ public class ConnectionImpl implements Connection {
     private GetProps getProps;
     private Statement statement;
 
-    private String query = "select query_to_xml('with constraints as (select distinct pgc.contype                                                        as constraint_type,\n" +
+    private final String QUERY_TO_XML = "query_to_xml";
+    private String querySchema = "select query_to_xml('with constraints as (select distinct pgc.contype                                                        as constraint_type,\n" +
             "                                     ccu.table_schema                                                   as table_schema,\n" +
             "                                     kcu.table_name                                                     as table_name,\n" +
             "                                     case\n" +
@@ -62,6 +63,10 @@ public class ConnectionImpl implements Connection {
             "order by table_name, constraint_type desc;', true\n" +
             "           , true, '');";
 
+    private String queryObject = "select query_to_xml('select * from %s.%s', true, true, '');";
+
+    private String queryForeignObject = "select query_to_xml('select * from %s.%s where %s = %s', true, true, '');";
+
     static {
         log = Logger.getLogger(ConnectionImpl.class.getName());
     }
@@ -82,14 +87,50 @@ public class ConnectionImpl implements Connection {
     @Override
     public String sendQueryIntoDB(String schema) {
         String result = null;
-        try (PreparedStatement pstmt = this.connection.prepareStatement(String.format(query,schema))) {
+        try (PreparedStatement pstmt = this.connection.prepareStatement(String.format(querySchema,schema))) {
             ResultSet resultSet = pstmt.executeQuery();
             if (resultSet.next()) {
-                result = resultSet.getString("query_to_xml");
+                result = resultSet.getString(QUERY_TO_XML);
             }
         } catch (Exception e) {
             log.severe(e.getMessage());
         }
         return result;
     }
+
+    /**
+     */
+    @Override
+    public String getQueryResult(String schemaName, String tableName) {
+        String result = null;
+        try (PreparedStatement pstmt = this.connection.prepareStatement(String.format(queryObject,schemaName,tableName))) {
+            ResultSet resultSet = pstmt.executeQuery();
+            if (resultSet.next()) {
+                result = resultSet.getString(QUERY_TO_XML);
+            }
+        } catch (Exception e) {
+            log.severe(e.getMessage());
+        }
+        return result;
+
+
+    }
+
+    @Override
+    public String getForeignQueryResult(String schemaName, String tableName,String idName,String idValue ) {
+        String result = null;
+        try (PreparedStatement pstmt = this.connection.prepareStatement(String.format(queryForeignObject,schemaName,tableName, idName,idValue))) {
+            ResultSet resultSet = pstmt.executeQuery();
+            if (resultSet.next()) {
+                result = resultSet.getString(QUERY_TO_XML);
+            }
+        } catch (Exception e) {
+            log.severe(e.getMessage());
+        }
+        return result;
+
+
+    }
+
+
 }

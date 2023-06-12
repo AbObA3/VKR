@@ -2,14 +2,14 @@ package split.impl;
 
 import connection.impl.ConnectionImpl;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import split.Splitter;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Data
 public class SplitterImpl implements Splitter {
@@ -53,4 +53,13 @@ public class SplitterImpl implements Splitter {
         this.tableQuantity = tableNames.size();
 
     }
+
+    public List<String> getRows(String xml) {
+        return Stream
+                .of(xml.split("</row>"))
+                .filter(s -> !s.isBlank())
+                .map(s -> s.concat("</row>"))
+                .collect(Collectors.toList());
+    }
+
 }

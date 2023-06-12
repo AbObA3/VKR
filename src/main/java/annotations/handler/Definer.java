@@ -6,12 +6,13 @@ import annotations.Table;
 import connection.impl.ConnectionImpl;
 import exceptions.AnnotationNotFoundException;
 import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-@NoArgsConstructor
+@UtilityClass
 public class Definer {
     private static final Logger log;
 
@@ -30,7 +31,7 @@ public class Definer {
         }
     }
 
-    public String getTableName(Object object) {
+    public static String getTableName(Object object) {
         try {
             checkIfTable(object);
             var table = object.getClass().getAnnotation(Table.class);
@@ -41,7 +42,7 @@ public class Definer {
         return null;
     }
 
-    public String getSchemaName(Object object) {
+    public static String getSchemaName(Object object) {
         try {
             checkIfTable(object);
             var table = object.getClass().getAnnotation(Table.class);
@@ -52,7 +53,7 @@ public class Definer {
         return null;
     }
 
-    public Field getPrimaryKey(Object object) {
+    public static Field getPrimaryKey(Object object) {
         var fields = object.getClass().getDeclaredFields();
         for(Field field : fields){
             if(field.isAnnotationPresent(PrimaryKey.class)){
@@ -63,7 +64,7 @@ public class Definer {
     }
 
 
-    public Field getForeignKey(Object object) {
+    public static Field getForeignKey(Object object) {
         var fields = object.getClass().getDeclaredFields();
         for(Field field : fields){
             if(field.isAnnotationPresent(ForeignKey.class)){
@@ -73,12 +74,12 @@ public class Definer {
         return null;
     }
 
-    public boolean isPrimaryKey(Field field) {
+    public static boolean isPrimaryKey(Field field) {
         return field.isAnnotationPresent(PrimaryKey.class);
     }
 
 
-    public boolean isForeignKey(Field field) {
+    public static boolean isForeignKey(Field field) {
         return field.isAnnotationPresent(ForeignKey.class);
     }
 }

@@ -13,21 +13,17 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-@Table(tableName = "example",schemaName = "schema_5")
-public class Example {
+@Table(tableName = "table28")
+public class Table28 {
 
     @PrimaryKey
-    private Integer id;
+    Integer id;
 
-    private Long longValue;
+    Integer rating;
 
-    private String stringValue;
-
-    private Float realValue;
+    String review;
 
     @ForeignKey
-    private Example2 example2Id;
-
-
+    Table29 table29Id;
 
 }

@@ -11,4 +11,6 @@ public interface Splitter {
     List<File> getFiles();
 
     Integer getTableQuantity();
+
+    List<String> getRows(String xml);
 }
