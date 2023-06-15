@@ -11,8 +11,7 @@ import validator.Validator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 public class OperationRepositoryImpl<T> implements OperationRepository<T> {
@@ -22,10 +21,13 @@ public class OperationRepositoryImpl<T> implements OperationRepository<T> {
     private final Connection connection;
     private final Splitter splitter;
 
+    private Map<String, Map<String, String>> tablesXML;
+
     public OperationRepositoryImpl(Class<T> data) throws NoSuchMethodException {
         this.ctor = data.getConstructor();
         this.splitter = new SplitterImpl();
         this.connection = new ConnectionImpl();
+        this.tablesXML = new HashMap<>();
     }
 
     /**
@@ -42,8 +44,7 @@ public class OperationRepositoryImpl<T> implements OperationRepository<T> {
                     try {
                         T temp = ctor.newInstance();
                         list.add((T) getObject(s, temp));
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                             NoSuchMethodException e) {
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e.getMessage());
                     }
 
@@ -53,39 +54,44 @@ public class OperationRepositoryImpl<T> implements OperationRepository<T> {
         return list;
     }
 
-    private Object getObject(String s, Object object) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private Object getObject(String s, Object object) {
 
-        var temp = object.getClass().getConstructor().newInstance();
-        for (var field : temp.getClass().getDeclaredFields()) {
-            field.trySetAccessible();
-            if (Definer.isForeignKey(field)) {
-                var foreignTemp = field.getType().getConstructor().newInstance();
-                var idName = Definer.getPrimaryKey(foreignTemp).getName();
-                var idValue = getData(s, Validator.fromCamelToSnake(field.getName()));
-                var tableName = Definer.getTableName(foreignTemp);
-                var schemaName = Definer.getSchemaName(foreignTemp);
-                field.set(temp, getObject(connection.getForeignQueryResult(schemaName, tableName, idName, idValue), field.getType().getConstructor().newInstance()));
-
-            } else {
-                field.set(temp, TypesEnum
-                        .valueOf(field
-                                .getType()
-                                .getSimpleName()
-                                .toUpperCase())
-                        .getCastedData(getData(s, Validator
-                                .fromCamelToSnake(field.getName()))));
+        Arrays.stream(object.getClass().getDeclaredFields()).parallel().forEach(field -> {
+            try {
+                field.trySetAccessible();
+                if (Definer.isForeignKey(field)) {
+                    Object foreignTemp = field.getType().getConstructor().newInstance();
+                    var idName = Definer.getPrimaryKey(foreignTemp).getName();
+                    var idValue = splitter.getData(s, Validator.fromCamelToSnake(field.getName()));
+                    var tableName = Definer.getTableName(foreignTemp);
+                    var schemaName = Definer.getSchemaName(foreignTemp);
+                    var foreignXml = getMap(tableName, schemaName, idName).get(idValue);
+                    field.set(object, getObject(foreignXml, field.getType().getConstructor().newInstance()));
+                } else {
+                    field.set(object, TypesEnum
+                            .valueOf(field
+                                    .getType()
+                                    .getSimpleName()
+                                    .toUpperCase())
+                            .getCastedData(splitter.getData(s, Validator
+                                    .fromCamelToSnake(field.getName()))));
+                }
+            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
+                     InvocationTargetException e) {
+                throw new RuntimeException(e);
             }
+        });
+        return object;
+
+    }
+
+    Map<String, String> getMap(String tableName, String schemaValue, String tag) {
+
+        if (!tablesXML.containsKey(tableName)) {
+            tablesXML.put(tableName, splitter.getMapRows(tag, connection.getQueryResult(schemaValue, tableName)));
         }
-        return temp;
-
+        return tablesXML.get(tableName);
     }
 
 
-    private String getData(String s, String tag) {
-
-        return s
-                .substring(
-                        s.indexOf(String.format("<%s>", tag)) + tag.length() + 2,
-                        s.indexOf(String.format("</%s>", tag)));
-    }
 }

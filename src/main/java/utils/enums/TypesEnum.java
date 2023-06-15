@@ -77,7 +77,6 @@ public enum TypesEnum {
 
         @Override
         public Timestamp getCastedData(String data) {
-            //yyyy-mm-dd hh:mm:ss[.fffffffff]
             return Timestamp.valueOf(LocalDateTime
                     .parse(data, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS"))
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));

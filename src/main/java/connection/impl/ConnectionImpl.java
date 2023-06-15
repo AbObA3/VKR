@@ -65,7 +65,6 @@ public class ConnectionImpl implements Connection {
 
     private String queryObject = "select query_to_xml('select * from %s.%s', true, true, '');";
 
-    private String queryForeignObject = "select query_to_xml('select * from %s.%s where %s = %s', true, true, '');";
 
     static {
         log = Logger.getLogger(ConnectionImpl.class.getName());
@@ -116,21 +115,6 @@ public class ConnectionImpl implements Connection {
 
     }
 
-    @Override
-    public String getForeignQueryResult(String schemaName, String tableName,String idName,String idValue ) {
-        String result = null;
-        try (PreparedStatement pstmt = this.connection.prepareStatement(String.format(queryForeignObject,schemaName,tableName, idName,idValue))) {
-            ResultSet resultSet = pstmt.executeQuery();
-            if (resultSet.next()) {
-                result = resultSet.getString(QUERY_TO_XML);
-            }
-        } catch (Exception e) {
-            log.severe(e.getMessage());
-        }
-        return result;
-
-
-    }
 
 
 }

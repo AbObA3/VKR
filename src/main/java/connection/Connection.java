@@ -8,5 +8,4 @@ public interface Connection {
 
     String getQueryResult(String schemaName, String tableName);
 
-    String getForeignQueryResult(String schemaName, String tableName, String idName, String idValue);
 }

@@ -3,6 +3,7 @@ package split;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 public interface Splitter {
 
@@ -13,4 +14,8 @@ public interface Splitter {
     Integer getTableQuantity();
 
     List<String> getRows(String xml);
+
+    Map<String,String> getMapRows(String tag, String xml);
+
+    String getData(String s, String tag);
 }

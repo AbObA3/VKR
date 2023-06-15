@@ -7,6 +7,7 @@ import split.Splitter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,10 +57,26 @@ public class SplitterImpl implements Splitter {
 
     public List<String> getRows(String xml) {
         return Stream
-                .of(xml.split("</row>"))
+                .of(xml.split("</row>")).parallel()
                 .filter(s -> !s.isBlank())
                 .map(s -> s.concat("</row>"))
                 .collect(Collectors.toList());
+    }
+
+    public Map<String,String> getMapRows(String tag, String xml) {
+        return Stream
+                .of(xml.split("</row>"))
+                .parallel()
+                .filter(s -> !s.isBlank())
+                .map(s -> s.concat("</row>"))
+                .collect(Collectors.toMap(s -> getData(s,tag), Function.identity()));
+    }
+
+    public String getData(String s, String tag) {
+        return s
+                .substring(
+                        s.indexOf(String.format("<%s>", tag)) + tag.length() + 2,
+                        s.indexOf(String.format("</%s>", tag)));
     }
 
 }

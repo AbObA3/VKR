@@ -18,7 +18,10 @@ import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import static org.reflections.scanners.Scanners.SubTypes;
@@ -34,7 +37,7 @@ public class ValidatorImpl implements Validator {
 
     @Override
     public void validate(Map<String, File> xsdMap, Integer quantityTables) {
-        Map<String,File> xmlMap = new HashMap<>();
+        Map<String, File> xmlMap = new HashMap<>();
         SchemaFactory factory =
                 SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         SchemaGenerator generator = new SchemaGenerator();
@@ -79,7 +82,7 @@ public class ValidatorImpl implements Validator {
                         row.setNumericPrecision(TypesEnum.valueOf(field.getType().getSimpleName().toUpperCase()).getNumericPrecision());
                     }
                     Map.Entry<String, File> entry = generator.genSchemaXML(row);
-                    xmlMap.put(entry.getKey(),entry.getValue());
+                    xmlMap.put(entry.getKey(), entry.getValue());
                     var xsdFile = xsdMap.get(entry.getKey());
                     if (Objects.isNull(xsdFile)) {
                         throw new FileNotFoundException(String.format("Не найдена схема валидации для файла %s", entry.getKey()));
